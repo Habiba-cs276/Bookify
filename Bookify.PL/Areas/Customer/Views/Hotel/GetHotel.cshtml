@@ -1,0 +1,330 @@
+@using Bookify.Models.ViewModels
+@model Bookify.Models.ViewModels.HotelDetailsVM
+@{
+    ViewData["Title"] = Model.Hotel.Name;
+    ViewData["Location"] = Model.Hotel.Name; // Show hotel name in location field
+    ViewData["LocationReadOnly"] = true;
+    ViewData["CheckInDate"] = Model.CheckInDate;
+    ViewData["CheckOutDate"] = Model.CheckOutDate;
+    ViewData["GuestCount"] = Model.GuestCount;
+    ViewData["FormAction"] = Url.Action("GetHotel", "Hotel", new { area = "Customer" });
+    ViewData["ExtraHiddenFields"] = new Dictionary<string, string> { { "id", Model.Hotel.Id.ToString() } };
+
+    var hasRooms = Model.RoomTypes?.Any() == true;
+    var minPrice = hasRooms ? Model.RoomTypes!.Min(r => r.BasePrice) : 0M;
+
+    // Construct image URL for main image with fallback
+    var mainImageSrc = !string.IsNullOrEmpty(Model.Hotel.MainImage)
+        ? Model.Hotel.MainImage.Replace("\\", "/")
+        : "/images/placeholder-hotel.jpg";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/hotel-details.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/reviews.css" asp-append-version="true" />
+}
+
+<div class="hotel-wrapper">
+    <div class="hotel-container">
+        <!-- Header -->
+        <header class="hotel-header-section">
+            <div class="header-content">
+                <div>
+                    <span class="hotel-type-badge">Hotel</span>
+                    <div class="star-rating" aria-label="@Model.Hotel.StarRating Stars">
+                        @for (int i = 0; i < Model.Hotel.StarRating; i++)
+                        {
+                            <i class="fas fa-star" aria-hidden="true"></i>
+                        }
+                    </div>
+                </div>
+                <h1 class="hotel-title">@Model.Hotel.Name</h1>
+                <div class="hotel-address">
+                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                    <span>@Model.Hotel.Address, @Model.Hotel.City?.Name</span>
+                    <a href="#" class="show-map-link">Show on map</a>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="price-start-label">Price starts from</div>
+                <div class="price-start-amount">EGP @minPrice.ToString("N0")</div>
+                <button id="btn-scroll-rooms" class="btn-select-room" aria-label="Scroll to available rooms section">
+                    Select Room
+                </button>
+            </div>
+        </header>
+
+        <!-- Gallery -->
+        <div class="gallery-grid">
+            <!-- Large Main Image (Left Side) -->
+            <div class="gallery-main gallery-item js-lightbox-trigger" data-index="0">
+                <picture>
+                    <source media="(max-width: 768px)" srcset="@mainImageSrc?w=768" />
+                    <source media="(min-width: 769px)" srcset="@mainImageSrc?w=1200" />
+                    <img src="@mainImageSrc" alt="@Model.Hotel.Name" loading="lazy" decoding="async" />
+                </picture>
+                <div class="gallery-overlay">
+                    <i class="fas fa-search-plus" aria-hidden="true"></i>
+                </div>
+            </div>
+
+            <!-- Gallery Thumbnails -->
+            @if (Model.Hotel.GalleryImages != null && Model.Hotel.GalleryImages.Count > 0)
+            {
+                var galleryList = Model.Hotel.GalleryImages.ToList();
+                int totalImages = galleryList.Count + 1; // +1 for main image
+
+                // Show up to 4 thumbnails (indices 1-4 in grid)
+                for (int i = 0; i < Math.Min(4, galleryList.Count); i++)
+                {
+                    var img = galleryList[i];
+                    var isLastVisible = (i == 3 && galleryList.Count > 4); // 4th thumbnail (5th image total)
+                    var index = i + 1; // Lightbox index (0 is main image)
+
+                    <div class="gallery-item js-lightbox-trigger" data-index="@index">
+                        <img src="@img.ImageUrl.Replace("\\", "/")" alt="Hotel photo" loading="lazy" />
+                        @if (isLastVisible)
+                        {
+                            <div class="gallery-overlay" style="opacity: 1; background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.85)); backdrop-filter: blur(2px);">
+                                <div style="text-align: center;">
+                                    <i class="fas fa-images" style="font-size: 2rem; color: white; margin-bottom: 6px;" aria-hidden="true"></i>
+                                    <div style="color:white; font-weight:700; font-size:1rem;">View All Photos</div>
+                                    <div style="color:white; font-size:0.85rem; opacity:0.95;">@totalImages images</div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="gallery-overlay">
+                                <i class="fas fa-search-plus" aria-hidden="true"></i>
+                            </div>
+                        }
+                    </div>
+                }
+
+            }
+        </div>
+
+        <div class="content-layout">
+            <!-- Main Info -->
+            <div class="main-column">
+                <div class="info-card">
+                    <h2 class="section-title">About the property</h2>
+                    <p class="description-text">@Html.Raw(Html.Encode(Model.Hotel.Description).Replace("\n", "<br />"))</p>
+
+                    <h3 class="section-title" style="font-size: 1.1rem; margin-top: 32px;">Most popular facilities</h3>
+                    <div class="facilities-list">
+                        <div class="facility-tag"><i class="fas fa-wifi" aria-hidden="true"></i> Free WiFi</div>
+                        <div class="facility-tag"><i class="fas fa-parking" aria-hidden="true"></i> Parking</div>
+                        <div class="facility-tag"><i class="fas fa-swimming-pool" aria-hidden="true"></i> Swimming Pool</div>
+                        <div class="facility-tag"><i class="fas fa-utensils" aria-hidden="true"></i> Restaurant</div>
+                        <div class="facility-tag"><i class="fas fa-concierge-bell" aria-hidden="true"></i> Room Service</div>
+                        <div class="facility-tag"><i class="fas fa-snowflake" aria-hidden="true"></i> Air Conditioning</div>
+                        <div class="facility-tag"><i class="fas fa-dumbbell" aria-hidden="true"></i> Fitness Center</div>
+                        <div class="facility-tag"><i class="fas fa-spa" aria-hidden="true"></i> Spa & Wellness</div>
+                    </div>
+                </div>
+
+               
+
+                <!-- Availability -->
+                <div id="tab-availability" class="tab-content active" role="tabpanel">
+                    <div id="room-options">
+                        <div class="room-list-header">
+                            <h2 class="room-list-title">Availability</h2>
+                        </div>
+
+                        <!-- Search Box for Availability -->
+                        <div class="mb-5">
+                             <partial name="_SearchBoxPartial" />
+                        </div>
+
+                        @if (!hasRooms)
+                        {
+                            <div class="info-card" style="text-align:center; padding: 40px;">
+                                <i class="fas fa-calendar-times" style="font-size: 3rem; color: #ccc; margin-bottom: 16px;" aria-hidden="true"></i>
+                                <h3>No rooms available</h3>
+                                <p style="color:var(--text-muted);">Try changing your dates or search criteria.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            foreach (var room in Model.RoomTypes!)
+                            {
+                                var count = Model.AvailableRoomsCount.ContainsKey(room.Id) ? Model.AvailableRoomsCount[room.Id] : 0;
+                                var viewData = new ViewDataDictionary(ViewData);
+                                viewData["Count"] = count;
+                                <partial name="_RoomCard" model="room" view-data="viewData" />
+                            }
+                        }
+                    </div>
+                </div>            
+                
+                <!-- Reviews Section -->
+                <div id="reviews" class="info-card reviews-section">
+                    <div class="reviews-header">
+                        <div class="reviews-title">
+                            <i class="fas fa-star" style="color: var(--color-primary);"></i>
+                            Reviews & Ratings
+                        </div>
+                        <div class="reviews-summary">
+                            <div class="summary-rating">@Model.Hotel.UserRating.ToString("0.0")</div>
+                            <div>
+                                <div class="summary-stars">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= Math.Round(Model.Hotel.UserRating))
+                                        {
+                                            <i class="fas fa-star"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-star" style="color: var(--color-gray-300);"></i>
+                                        }
+                                    }
+                                </div>
+                                <div class="summary-count">@Model.Hotel.ReviewCount verified reviews</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    @if (Model.CanReview)
+                    {
+                        <div class="review-form-card">
+                            <div class="review-form-header">
+                                <div class="review-form-title">Write a Review</div>
+                                <p style="color: var(--color-gray-500); font-size: 14px; margin: 0;">Share your experience with other travelers</p>
+                            </div>
+                            
+                            <form asp-action="SubmitReview" method="post">
+                                <input type="hidden" name="hotelId" value="@Model.Hotel.Id" />
+                                
+                                <div class="mb-4">
+                                    <label style="display:block; margin-bottom:8px; font-weight:600;">Your Rating</label>
+                                    <div class="star-rating-input">
+                                        <input type="radio" id="star5" name="rating" value="5" required /><label for="star5" title="5 stars"><i class="fas fa-star"></i></label>
+                                        <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars"><i class="fas fa-star"></i></label>
+                                        <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars"><i class="fas fa-star"></i></label>
+                                        <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars"><i class="fas fa-star"></i></label>
+                                        <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star"><i class="fas fa-star"></i></label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="reviewText" style="display:block; margin-bottom:8px; font-weight:600;">Your Review</label>
+                                    <textarea id="reviewText" name="reviewText" class="form-control" rows="4" placeholder="What did you like? What could be improved?" required minlength="10" maxlength="1000" style="width:100%; padding:12px; border:1px solid var(--color-gray-200); border-radius:8px; resize:vertical;"></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" style="background:var(--color-primary); color:var(--color-black); border:none; padding:12px 24px; border-radius:8px; font-weight:700; cursor:pointer;">
+                                    Submit Review
+                                </button>
+                            </form>
+                        </div>
+                    }
+
+                    @if (Model.Reviews != null && Model.Reviews.Any())
+                    {
+                        <div class="reviews-grid">
+                            @foreach (var review in Model.Reviews)
+                            {
+                                <div class="review-card">
+                                    <div class="review-author">
+                                        <div class="author-avatar">
+                                            @if (!string.IsNullOrEmpty(review.Customer?.PersonalImgUrl))
+                                            {
+                                                <img src="@review.Customer.PersonalImgUrl" alt="@review.Customer.Name" />
+                                            }
+                                            else
+                                            {
+                                                @(review.Customer?.Name?.FirstOrDefault().ToString().ToUpper() ?? "U")
+                                            }
+                                        </div>
+                                        <div class="author-info">
+                                            <h4>@(review.Customer?.Name ?? "Bookify User")</h4>
+                                            <span class="review-date">@review.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                    </div>
+                                    <div class="review-rating">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= review.Rating)
+                                            {
+                                                <i class="fas fa-star"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="far fa-star" style="color: var(--color-gray-300);"></i>
+                                            }
+                                        }
+                                    </div>
+                                    <div class="review-content">
+                                        @review.ReviewText
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="text-align:center; padding:40px; color:var(--color-gray-500);">
+                            <i class="far fa-comment-dots" style="font-size:48px; margin-bottom:15px; opacity:0.5;"></i>
+                            <p>No reviews yet. Be the first to review this hotel!</p>
+                        </div>
+                    }
+                </div>
+
+<!-- Lightbox Modal -->
+<div id="lightbox" class="lightbox-modal" role="dialog" aria-modal="true" aria-label="Image Gallery">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close gallery">
+        <i class="fas fa-times" aria-hidden="true"></i>
+    </button>
+    <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous image">
+        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+    </button>
+    <div class="lightbox-content">
+        <img id="lightbox-image" src="" alt="Hotel Image">
+    </div>
+    <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next image">
+        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+    </button>
+</div>
+
+
+@section Scripts {
+
+    @{
+        Func<string?, string> norm = path =>
+            string.IsNullOrWhiteSpace(path)
+                ? Url.Content("~/images/placeholder-hotel.jpg")
+                : path.Replace("\\", "/");
+
+        // Build the gallery array (main image + gallery images)
+        var gallery = new List<string> { norm(mainImageSrc) };
+
+        if (Model.Hotel?.GalleryImages != null)
+        {
+            gallery.AddRange(Model.Hotel.GalleryImages.Select(g => norm(g.ImageUrl)));
+        }
+    }
+
+    <script>
+        window.hotelGalleryImages = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(gallery));
+    </script>
+
+    <script src="~/javascript/main.js" asp-append-version="true"></script>
+    <script src="~/javascript/hotel-details.js" asp-append-version="true" defer></script>
+}
+

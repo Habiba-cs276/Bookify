@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Bookify</title>
+    <meta name="description" content="Bookify - Your Hotel Booking Solution">
+    <meta name="theme-color" content="#FEFA17">
+
+    <!-- Preload Critical Resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/global.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/navbar.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/hero.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/search.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cards.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/sections.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/footer.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/animations.css" asp-append-version="true" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="bookify-app">
+    <!-- Main Navigation -->
+    <nav class="main-navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <!-- Logo -->
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-hotel"></i>
+                    <span>Bookify</span>
+                </a>
+
+                <!-- Center Navigation Links -->
+                <ul class="nav-links">
+                    @{
+                        var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+                        var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+                        var isHomeIndex = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase) &&
+                                          string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
+                    }
+                    @if (isHomeIndex && !(User.IsInRole("Owner") || User.IsInRole("Admin")))
+                    {
+                                             <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+                       
+                        <li>
+                            <a href="#Featured">Featured Hotels   </a>
+                        </li>
+                        <li>
+                            <a href="#destinations">Destinations </a>
+                        </li>
+                    }
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <li>
+                            <a asp-area="Customer" asp-controller="Booking" asp-action="History">My Reservations</a>
+                        </li>
+                    }
+                </ul>
+
+                
+                
+                @if (User.IsInRole("Admin") || User.IsInRole("Owner"))
+                {
+                    <div class="ms-2">
+                        <a asp-controller="Dashboard" asp-action="index" asp-area="Admin" class="btn-dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </div>
+                }
+                <!-- User Actions -->
+                <partial name="_LoginPartial"></partial>
+
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-toggle" type="button" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main role="main" class="site-main">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <i class="fas fa-hotel"></i>
+                        <span>Bookify</span>
+                    </div>
+                    <p class="footer-description">
+                        Your premium hotel booking solution. Find and book the best hotels worldwide with ease.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h5 class="footer-title">Quick Links</h5>
+                    <ul class="footer-links">
+                        <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li><a href="#">Hotels</a></li>
+                        <li><a href="#">Destinations</a></li>
+                        <li><a href="#">About Us</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h5 class="footer-title">Support</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Careers</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h5 class="footer-title">Legal</h5>
+                    <ul class="footer-links">
+                        <li><a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">Disclaimers</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h5 class="footer-title">Newsletter</h5>
+                    <p class="footer-description">Subscribe to get special offers and updates.</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Your email address" class="newsletter-input">
+                        <button type="submit" class="newsletter-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    <div class="payment-methods">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" alt="Visa" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+<p>&copy; 2025 Bookify. All rights reserved. Made with <i class="fas fa-heart"></i> by Bookify Team.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top -->
+    <button class="scroll-top" id="scrollTop">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/javascript/navbar.js" asp-append-version="true"></script>
+    <partial name="_Notification" />
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

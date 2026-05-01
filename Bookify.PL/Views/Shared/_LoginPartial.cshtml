@@ -1,0 +1,74 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Bookify.Models
+
+@inject SignInManager<Customer> SignInManager
+@inject UserManager<Customer> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    var userInitial = user?.Email?.FirstOrDefault().ToString().ToUpper() ?? "U";
+    var isDashboard = Context.Request.Path.StartsWithSegments("/Admin");
+    
+    @if (isDashboard)
+    {
+        <!-- Dashboard Version -->
+        <div class="navbar-user-info">
+            <div class="navbar-user-avatar" title="@user?.Email">
+                @userInitial
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <div class="navbar-user-email">@UserManager.GetUserName(User)</div>
+                <small style="color: #999; font-size: 0.75rem;">Admin</small>
+            </div>
+        </div>
+        <div class="navbar-user-dropdown">
+            <a href="@Url.Action("Index", "Home", new { area = "" })" title="Back to Home">
+                <i class="fas fa-home"></i>
+            </a>
+        </div>
+        <form id="logoutForm" style="display: inline;" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+            <button id="logout" type="submit" class="navbar-user-dropdown" style="background: none; border: none; cursor: pointer;" title="Logout">
+                <i class="fas fa-sign-out-alt" style="color: #667eea;"></i>
+            </button>
+        </form>
+    }
+    else
+    {
+        <!-- Main Layout Version - Enhanced for New Navbar -->
+        <a class="nav-user-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="@user?.Name">
+            <div style="width: 32px; height: 32px; background: var(--color-primary); color: var(--color-black); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+                @userInitial
+            </div>
+            <span>@user?.Name</span>
+        </a>
+        <form id="logoutForm" style="display: inline;" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+            <button id="logout" type="submit" class="nav-icon-btn" title="Logout" style="border: none; cursor: pointer;">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </form>
+    }
+}
+else
+{
+    var isDashboard = Context.Request.Path.StartsWithSegments("/Admin");
+    
+    @if (!isDashboard)
+    {
+        <!-- Main Layout Version - Not Signed In -->
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <a class="nav-link" id="register" asp-area="Identity" asp-page="/Account/Register">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="login" asp-area="Identity" asp-page="/Account/Login">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </a>
+            </li>
+        </ul>
+    }
+}

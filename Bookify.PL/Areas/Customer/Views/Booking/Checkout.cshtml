@@ -1,0 +1,123 @@
+@model Bookify.Models.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
+}
+
+<div class="checkout-container">
+    <h1 class="checkout-title">Secure Checkout</h1>
+    
+    <div class="checkout-grid">
+        <!-- Left Column: Guest Details -->
+        <div class="checkout-left">
+            <div class="checkout-card">
+                <div class="card-header">
+                    <h2>Guest Information</h2>
+                </div>
+                <div class="card-body">
+                    <p style="color: var(--text-muted); margin-bottom: 24px;">
+                        You are logged in. We'll use your account details for this booking.
+                    </p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" value="@User.Identity.Name" disabled class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="text" value="user@example.com" disabled class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="checkout-card">
+                <div class="card-header">
+                    <h2>Payment Method</h2>
+                </div>
+                <div class="card-body">
+                    <div class="payment-method-box">
+                        <i class="fas fa-credit-card payment-icon"></i>
+                        <div>
+                            <div style="font-weight: 700; color: var(--text-main);">Credit / Debit Card</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Secure payment via Stripe</div>
+                        </div>
+                        <i class="fas fa-check-circle payment-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Booking Summary -->
+        <div class="checkout-right">
+            <div class="checkout-card">
+                <div class="card-header">
+                    <h2>Your Booking</h2>
+                </div>
+                <div class="card-body">
+                    <div class="hotel-summary">
+                        @if (!string.IsNullOrEmpty(Model.RoomType.Hotel.MainImage))
+                        {
+                            <img src="@Model.RoomType.Hotel.MainImage.Replace("\\", "/")" alt="@Model.RoomType.Hotel.Name" class="hotel-thumb" />
+                        }
+                        <div class="hotel-details">
+                            <h3>@Model.RoomType.Hotel.Name</h3>
+                            <div class="hotel-address">@Model.RoomType.Hotel.Address</div>
+                            <div class="room-name">@Model.RoomType.Name</div>
+                        </div>
+                    </div>
+
+                    <div class="trip-dates">
+                        <div class="date-box">
+                            <label>Check-in</label>
+                            <div>@Model.CheckInDate.ToString("ddd, MMM dd")</div>
+                        </div>
+                        <div class="date-box">
+                            <label>Check-out</label>
+                            <div>@Model.CheckOutDate.ToString("ddd, MMM dd")</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 24px; font-size: 0.95rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-moon"></i> @Model.TotalNights nights stay
+                    </div>
+
+                    <div class="price-breakdown">
+                        <div class="price-row">
+                            <span>Original Price (@Model.TotalNights nights)</span>
+                            <span>EGP @Model.BasePrice.ToString("N0")</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Taxes & Fees (14%)</span>
+                            <span>EGP @Model.Tax.ToString("N0")</span>
+                        </div>
+                        <div class="price-row total">
+                            <span>Total</span>
+                            <span>EGP @Model.TotalPrice.ToString("N0")</span>
+                        </div>
+                    </div>
+
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="roomTypeId" value="@Model.RoomType.Id" />
+                        <input type="hidden" name="checkInDate" value="@Model.CheckInDate.ToString("yyyy-MM-dd")" />
+                        <input type="hidden" name="checkOutDate" value="@Model.CheckOutDate.ToString("yyyy-MM-dd")" />
+                        
+                        <button type="submit" class="btn-pay">
+                            Pay EGP @Model.TotalPrice.ToString("N0")
+                            <i class="fas fa-lock"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="secure-badge">
+                        <i class="fas fa-shield-alt"></i> Secure SSL Encrypted Transaction
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
