@@ -6,8 +6,8 @@ Bookify is a modern, full-featured hotel booking web application built with **AS
 Bookify is a web application developed as a team project.
 
 Team Members :
-# Habiba Seliem
-# Muhammad Mahmoud
+## Habiba Seliem
+## Muhammad Mahmoud
 
 ## ✨ Key Features
 
